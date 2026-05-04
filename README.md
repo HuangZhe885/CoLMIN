@@ -83,3 +83,27 @@ CUDA_VISIBLE_DEVICES=5 vllm serve ckpt/colmin/LLM --port 8888 --max-model-len 40
 CUDA_VISIBLE_DEVICES=3 vllm serve ckpt/colmin/LLM_7B --port 2222 --max-model-len 8192 --trust-remote-code --enable-prefix-caching
 ```
 Note: make sure that the selected ports (1111,8888) are not occupied by other services. If you use other ports, please modify values of key 'comm_client' and 'vlm_client' in
+
+### Run CARLA
+```
+conda activate colmin
+# Start CARLA server, if port 2000 is already in use, choose another
+CUDA_VISIBLE_DEVICES=0 ./external_paths/carla_root/CarlaUE4.sh --world-port=2000 -prefer-nvidia
+```
+### Run CoLMIN (close-loop evaluation)
+```
+bash scripts/eval/eval_mode.sh 0 2000 colmin ideal Interdrive_all
+```
+### Summarize the results
+```
+python visualization/result_analysis.py results/results_driving_colmin
+```
+
+## Acknowledgement
+
+We build our framework on top of 'V2XVerse' and "CoLMDriver", please refer to the repo
+```
+https://github.com/CollaborativePerception/V2Xverse
+https://github.com/cxliu0314/CoLMDriver
+```
+
