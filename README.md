@@ -54,3 +54,32 @@ Note: we choose the setuptools==41 to install because this version has the featu
 
 Refer to official repo of https://github.com/vllm-project/vllm
 
+## How to config?
+We use vLLM to deploy and run local models. Here are the detailed deployment steps:
+
+```
+conda create -n vllm python=3.12 -y
+conda activate vllm
+git clone https://github.com/vllm-project/vllm.git
+cd vllm
+VLLM_USE_PRECOMPILED=1 pip install --editable .
+```
+### Download Models
+Create a model storage directory and download the required models:
+Example： Download Qwen2.5-VL-3B-Instruct-AWQ
+```
+mkdir vlm_models
+huggingface-cli download Qwen/Qwen2.5-VL-3B-Instruct-AWQ --local-dir vlm_models/Qwen/Qwen2.5-VL-3B-Instruct-AWQ
+```
+### Start vlm model:
+```
+conda activate vllm
+# VLM on call
+CUDA_VISIBLE_DEVICES=4 vllm serve ckpt/colmin/VLM --port 1111 --max-model-len 8192 --trust-remote-code --enable-prefix-caching
+
+# LLM on call
+CUDA_VISIBLE_DEVICES=5 vllm serve ckpt/colmin/LLM --port 8888 --max-model-len 4096 --trust-remote-code --enable-prefix-caching 
+
+CUDA_VISIBLE_DEVICES=3 vllm serve ckpt/colmin/LLM_7B --port 2222 --max-model-len 8192 --trust-remote-code --enable-prefix-caching
+```
+Note: make sure that the selected ports (1111,8888) are not occupied by other services. If you use other ports, please modify values of key 'comm_client' and 'vlm_client' in
