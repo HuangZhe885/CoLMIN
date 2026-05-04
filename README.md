@@ -64,14 +64,14 @@ git clone https://github.com/vllm-project/vllm.git
 cd vllm
 VLLM_USE_PRECOMPILED=1 pip install --editable .
 ```
-### Download Models
+### Step1: Download Models
 Create a model storage directory and download the required models:
 Example： Download Qwen2.5-VL-3B-Instruct-AWQ
 ```
 mkdir vlm_models
 huggingface-cli download Qwen/Qwen2.5-VL-3B-Instruct-AWQ --local-dir vlm_models/Qwen/Qwen2.5-VL-3B-Instruct-AWQ
 ```
-### Start vlm model:
+### Step2: Start vlm model:
 ```
 conda activate vllm
 # VLM on call
@@ -84,17 +84,17 @@ CUDA_VISIBLE_DEVICES=3 vllm serve ckpt/colmin/LLM_7B --port 2222 --max-model-len
 ```
 Note: make sure that the selected ports (1111,8888) are not occupied by other services. If you use other ports, please modify values of key 'comm_client' and 'vlm_client' in
 
-### Run CARLA
+### Step3:  Run CARLA
 ```
 conda activate colmin
 # Start CARLA server, if port 2000 is already in use, choose another
 CUDA_VISIBLE_DEVICES=0 ./external_paths/carla_root/CarlaUE4.sh --world-port=2000 -prefer-nvidia
 ```
-### Run CoLMIN (close-loop evaluation)
+### Step4: Run CoLMIN (close-loop evaluation)
 ```
 bash scripts/eval/eval_mode.sh 0 2000 colmin ideal Interdrive_all
 ```
-### Summarize the results
+### Step5: Summarize the results
 ```
 python visualization/result_analysis.py results/results_driving_colmin
 ```
