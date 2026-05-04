@@ -66,6 +66,7 @@ VLLM_USE_PRECOMPILED=1 pip install --editable .
 ```
 ### Step1: Download Models
 Create a model storage directory and download the required models:
+
 Example： Download Qwen2.5-VL-3B-Instruct-AWQ
 ```
 mkdir vlm_models
