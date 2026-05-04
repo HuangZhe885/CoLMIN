@@ -83,7 +83,7 @@ CUDA_VISIBLE_DEVICES=5 vllm serve ckpt/colmin/LLM --port 8888 --max-model-len 40
 
 CUDA_VISIBLE_DEVICES=3 vllm serve ckpt/colmin/LLM_7B --port 2222 --max-model-len 8192 --trust-remote-code --enable-prefix-caching
 ```
-Note: make sure that the selected ports (1111,8888) are not occupied by other services. If you use other ports, please modify values of key 'comm_client' and 'vlm_client' in
+Note: make sure that the selected ports (1111,8888,2222) are not occupied by other services. If you use other ports, please modify values of key 'comm_client' and 'vlm_client' in
 
 ### Step3:  Run CARLA
 ```
