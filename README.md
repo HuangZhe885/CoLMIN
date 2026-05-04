@@ -6,7 +6,7 @@ Three environments are needed: 'vllm' for MLLMs inference and 'colmin' for simul
 
 ## 1. Get code and create pytorch environment.
 ```
-git clone https://github.com/cxliu0314/CoLMDriver.git
+git clone https://github.com/HuangZhe885/CoLMIN.git
 conda create --name colmin python=3.7 cmake=3.22.1
 conda activate colmin
 conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch -c conda-forge
