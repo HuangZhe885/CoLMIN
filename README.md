@@ -5,7 +5,7 @@ Three environments are needed: 'vllm' for MLLMs inference and 'colmin' for simul
 # CoLMIN env
 
 ## 1. Get code and create pytorch environment.
-```text
+```
 git clone https://github.com/cxliu0314/CoLMDriver.git
 conda create --name colmin python=3.7 cmake=3.22.1
 conda activate colmin
@@ -35,7 +35,7 @@ python -m pip install efficientnet_pytorch==0.7.0
 ```
 ## 2. Download and setup CARLA 0.9.10.1.
 Carla code is only tested in CARLA 0.9.10.1 which requires python 3.7. So please open another environment with python 3.7 to install carla.
-```text
+```
 conda deactivate
 conda create --name Carla python=3.7
 conda activate Carla
@@ -48,7 +48,9 @@ ln -s ${PWD}/carla/ external_paths/carla_root
 # If you already have a Carla, just create a soft link to external_paths/carla_root
 ```
 
-### Note: we choose the setuptools==41 to install because this version has the feature easy_install. After installing the carla.egg you can install the lastest setuptools to avoid No module named distutils_hack.
+Note: we choose the setuptools==41 to install because this version has the feature easy_install. After installing the carla.egg you can install the lastest setuptools to avoid No module named distutils_hack.
 
+## 3. vllm env
 
+Refer to official repo of https://github.com/vllm-project/vllm
 
