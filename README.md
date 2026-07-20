@@ -1,5 +1,6 @@
 # CoLMIN: LLM-based Multi-Decision Path Negotiation for Cooperative Autonomous Driving
-<img width="1734" height="626" alt="image" src="https://github.com/user-attachments/assets/94a9ba8e-566f-48bb-9552-2d39dd123e39" />
+<img width="1566" height="558" alt="image" src="https://github.com/user-attachments/assets/aaea0c7d-bb7f-4b51-963a-d3d190ab54da" />
+
 
 
 # CoLMIN env
@@ -107,9 +108,12 @@ image contains the Python environment and core dependencies for perception,
 planning, and closed-loop evaluation. CARLA, checkpoints, datasets, and LLM/VLM
 weights are not included in the image and should be mounted at runtime.
 
-## 1. Build Docker Image
+We recommend running the LLM/VLM services separately with `vllm`, because vLLM
+usually requires a newer Python/CUDA stack than the CoLMIN closed-loop runtime.
 
-Create `docker/Dockerfile.CoLMIN`:
+## 1. Prepare Docker Files
+
+Create `docker/Dockerfile.CoLMIN` in the repository:
 
 ```dockerfile
 FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
@@ -172,7 +176,157 @@ ENV PYTHONPATH=/workspace/CoLMIN:/workspace/CoLMIN/external_paths/carla_root/Pyt
 CMD ["/bin/bash"]
 ```
 
+Create `.dockerignore` in the repository:
 
+```dockerignore
+.git
+ckpt
+results
+external_paths
+data
+*.pth
+*.ckpt
+*.tar
+*.zip
+*.egg
+__pycache__
+```
+
+## 2. Build Docker Image
+
+Build the image on your server:
+
+```bash
+docker build -f docker/Dockerfile.CoLMIN -t YOUR_DOCKERHUB_NAME/colmin:cu113 .
+```
+
+For example:
+
+```bash
+docker build -f docker/Dockerfile.CoLMIN -t huangzhe885/colmin:cu113 .
+```
+
+## 3. Push to DockerHub
+
+After the image is built successfully, upload it to DockerHub:
+
+```bash
+docker login
+docker push YOUR_DOCKERHUB_NAME/colmin:cu113
+```
+
+Other users can then directly pull the image:
+
+```bash
+docker pull YOUR_DOCKERHUB_NAME/colmin:cu113
+```
+
+## 4. Run Docker Container
+
+Start the container and mount CARLA, checkpoints, datasets, and result folders:
+
+```bash
+docker run --gpus all --net=host --ipc=host --shm-size=32g -it \
+  -v /path/to/carla:/workspace/CoLMIN/external_paths/carla_root \
+  -v /path/to/ckpt:/workspace/CoLMIN/ckpt \
+  -v /path/to/data_root:/workspace/CoLMIN/external_paths/data_root \
+  -v /path/to/results:/workspace/CoLMIN/results \
+  --name colmin_env \
+  YOUR_DOCKERHUB_NAME/colmin:cu113 bash
+```
+
+Please replace the mounted paths with your local paths. For example,
+`/path/to/carla` should point to the CARLA 0.9.10.1 directory.
+
+If you use the example image name:
+
+```bash
+docker run --gpus all --net=host --ipc=host --shm-size=32g -it \
+  -v /path/to/carla:/workspace/CoLMIN/external_paths/carla_root \
+  -v /path/to/ckpt:/workspace/CoLMIN/ckpt \
+  -v /path/to/data_root:/workspace/CoLMIN/external_paths/data_root \
+  -v /path/to/results:/workspace/CoLMIN/results \
+  --name colmin_env \
+  huangzhe885/colmin:cu113 bash
+```
+
+## 5. Start LLM/VLM Services
+
+Start the LLM/VLM services outside the Docker container in the `vllm`
+environment:
+
+```bash
+conda activate vllm
+
+# VLM service
+CUDA_VISIBLE_DEVICES=4 vllm serve ckpt/colmin/VLM \
+  --port 1111 \
+  --max-model-len 8192 \
+  --trust-remote-code \
+  --enable-prefix-caching
+
+# LLM service
+CUDA_VISIBLE_DEVICES=5 vllm serve ckpt/colmin/LLM \
+  --port 8888 \
+  --max-model-len 4096 \
+  --trust-remote-code \
+  --enable-prefix-caching
+
+# Optional LLM-7B service
+CUDA_VISIBLE_DEVICES=3 vllm serve ckpt/colmin/LLM_7B \
+  --port 2222 \
+  --max-model-len 8192 \
+  --trust-remote-code \
+  --enable-prefix-caching
+```
+
+Make sure the ports used here are consistent with the `comm_client` and
+`vlm_client` settings in the agent configuration.
+
+## 6. Run CARLA
+
+Inside the Docker container, start the CARLA server:
+
+```bash
+cd /workspace/CoLMIN
+CUDA_VISIBLE_DEVICES=0 ./external_paths/carla_root/CarlaUE4.sh \
+  --world-port=2000 \
+  -prefer-nvidia
+```
+
+If port `2000` is already occupied, choose another port and use the same port in
+the evaluation command.
+
+## 7. Run Closed-loop Evaluation
+
+Open another terminal and enter the same container:
+
+```bash
+docker exec -it colmin_env bash
+```
+
+Run CoLMIN closed-loop evaluation:
+
+```bash
+cd /workspace/CoLMIN
+bash scripts/eval/eval_mode.sh 0 2000 colmin ideal Interdrive_all
+```
+
+Summarize the results:
+
+```bash
+python visualization/result_analysis.py results/results_driving_colmin
+```
+
+## Notes
+
+- The Docker image does not include CARLA, datasets, checkpoints, or LLM/VLM
+  weights.
+- CARLA should be version `0.9.10.1`.
+- The container uses `--net=host`, so the vLLM ports can be accessed directly
+  from inside the container.
+- If you change the CARLA world port, keep the port consistent between the
+  CARLA server and `scripts/eval/eval_mode.sh`.
 
 
 
@@ -183,4 +337,3 @@ We build our framework on top of 'V2XVerse' and "CoLMDriver", please refer to th
 https://github.com/CollaborativePerception/V2Xverse
 https://github.com/cxliu0314/CoLMDriver
 ```
-
