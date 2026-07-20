@@ -100,9 +100,18 @@ bash scripts/eval/eval_mode.sh 0 2000 colmin ideal Interdrive_all
 python visualization/result_analysis.py results/results_driving_colmin
 ```
 
-# Docker installition
-```docker/Dockerfile.CoLMIN
+# Docker Installation
 
+We provide a Docker-based setup for the CoLMIN runtime environment. The Docker
+image contains the Python environment and core dependencies for perception,
+planning, and closed-loop evaluation. CARLA, checkpoints, datasets, and LLM/VLM
+weights are not included in the image and should be mounted at runtime.
+
+## 1. Build Docker Image
+
+Create `docker/Dockerfile.CoLMIN`:
+
+```dockerfile
 FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -161,9 +170,11 @@ RUN mkdir -p /workspace/CoLMIN/external_paths \
 ENV PYTHONPATH=/workspace/CoLMIN:/workspace/CoLMIN/external_paths/carla_root/PythonAPI/carla/dist/carla-0.9.10-py3.7-linux-x86_64.egg:${PYTHONPATH}
 
 CMD ["/bin/bash"]
-
-
 ```
+
+
+
+
 
 ## Acknowledgement
 
