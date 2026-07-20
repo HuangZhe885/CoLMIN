@@ -65,7 +65,7 @@ git clone https://github.com/vllm-project/vllm.git
 cd vllm
 VLLM_USE_PRECOMPILED=1 pip install --editable .
 ```
-### Step1: Download Models
+###  Download Models
 Create a model storage directory and download the required models:
 
 Example： Download Qwen2.5-VL-3B-Instruct-AWQ
@@ -73,7 +73,22 @@ Example： Download Qwen2.5-VL-3B-Instruct-AWQ
 mkdir vlm_models
 huggingface-cli download Qwen/Qwen2.5-VL-3B-Instruct-AWQ --local-dir vlm_models/Qwen/Qwen2.5-VL-3B-Instruct-AWQ
 ```
-### Step2: Start vlm model:
+
+## Evaluation on Interdrive benchmark
+
+Step1: Download checkpoints from Google drive（https://drive.google.com/file/d/1z3poGdoomhujCNQtoQ80-BCO34GTOLb-/view）. The downloaded checkpoints of CoLMDriver should follow this structure:
+```
+|--CoLMin
+    |--ckpt
+        |--colmin
+            |--LLM
+            |--perception
+            |--VLM
+            |--waypoints_planner
+```
+
+
+Step2 : Running VLM, LLM
 ```
 conda activate vllm
 # VLM on call
@@ -100,6 +115,11 @@ bash scripts/eval/eval_mode.sh 0 2000 colmin ideal Interdrive_all
 ```
 python visualization/result_analysis.py results/results_driving_colmin
 ```
+
+
+
+
+
 
 # Docker Installation
 
