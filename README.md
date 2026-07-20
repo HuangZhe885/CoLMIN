@@ -100,6 +100,71 @@ bash scripts/eval/eval_mode.sh 0 2000 colmin ideal Interdrive_all
 python visualization/result_analysis.py results/results_driving_colmin
 ```
 
+# Docker installition
+```docker/Dockerfile.CoLMIN
+
+FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV CONDA_DIR=/opt/conda
+ENV PATH=${CONDA_DIR}/bin:${PATH}
+ENV CUDA_HOME=/usr/local/cuda
+ENV FORCE_CUDA=1
+
+RUN apt-get update && apt-get install -y \
+    git wget curl vim build-essential cmake ninja-build \
+    libglib2.0-0 libsm6 libxext6 libxrender-dev libgl1-mesa-glx \
+    libx11-6 libx11-xcb1 libxcb1 libxcb-render0 libxcb-shape0 libxcb-xfixes0 \
+    ffmpeg libomp-dev ca-certificates unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py37_4.12.0-Linux-x86_64.sh -O /tmp/miniconda.sh && \
+    bash /tmp/miniconda.sh -b -p ${CONDA_DIR} && \
+    rm /tmp/miniconda.sh && \
+    conda clean -afy
+
+SHELL ["/bin/bash", "-lc"]
+
+RUN conda create -n colmin python=3.7 cmake=3.22.1 -y && \
+    conda run -n colmin conda install -y \
+    pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 \
+    cudatoolkit=11.3 -c pytorch -c conda-forge && \
+    conda run -n colmin conda install -y cudnn -c conda-forge && \
+    conda clean -afy
+
+ENV PATH=${CONDA_DIR}/envs/colmin/bin:${CONDA_DIR}/bin:${PATH}
+
+WORKDIR /workspace
+
+RUN git clone --depth=1 https://github.com/HuangZhe885/CoLMIN.git /workspace/CoLMIN
+
+WORKDIR /workspace/CoLMIN
+
+RUN python -m pip install --upgrade "pip<24" wheel && \
+    python -m pip install -r opencood/requirements.txt && \
+    python -m pip install -r simulation/requirements.txt && \
+    python -m pip install spconv-cu116 && \
+    python -m pip install efficientnet_pytorch==0.7.0 && \
+    python setup.py develop && \
+    python opencood/utils/setup.py build_ext --inplace
+
+RUN cd /workspace && \
+    git clone https://github.com/klintan/pypcd.git && \
+    cd pypcd && \
+    python -m pip install python-lzf && \
+    python setup.py install
+
+RUN mkdir -p /workspace/CoLMIN/external_paths \
+    /workspace/CoLMIN/ckpt \
+    /workspace/CoLMIN/results
+
+ENV PYTHONPATH=/workspace/CoLMIN:/workspace/CoLMIN/external_paths/carla_root/PythonAPI/carla/dist/carla-0.9.10-py3.7-linux-x86_64.egg:${PYTHONPATH}
+
+CMD ["/bin/bash"]
+
+
+```
+
 ## Acknowledgement
 
 We build our framework on top of 'V2XVerse' and "CoLMDriver", please refer to the repo
